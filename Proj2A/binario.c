@@ -16,20 +16,19 @@ int main() {
         return 1;
     }
 
-    while (!feof(fp)) {
-        // Leitura da linha do arquivo
-        char str[MAX_STR] = {};
-        fscanf(fp, "%[^\n]%*c", str);
-
-        // Analise lexica
-        for(int i = 0; str[i] != '\0'; i++) {
-            if(str[i] != '0' && str[i] != '1') {
-                printf("REJEITADA: %s\n", str); 
+    char line[MAX_STR];
+    while (fgets(line, MAX_STR, fp) != NULL) {
+        int isValid = 1;
+        for (int i = 0; line[i] != '\0'; i++) {
+            if (line[i] != '0' && line[i] != '1' && line[i] != '\n') {
+                isValid = 0;
                 break;
             }
-            else if(str[i + 1] == '\0')
-                printf("RECONHECIDA: %s\n", str);
         }
+        if (isValid)
+            printf("RECONHECIDA: %s", line);
+        else
+            printf("REJEITADA: %s", line);
     }
 
     fclose(fp);
