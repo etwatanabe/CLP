@@ -18,9 +18,10 @@ int main() {
 
     char line[MAX_STR];
     while (fgets(line, MAX_STR, fp) != NULL) {
-        int isValid = 1;
-        for (int i = 0; line[i] != '\0'; i++) {
-            if (line[i] != '0' && line[i] != '1' && line[i] != '\n') {
+        int isValid = 0;
+        for (int i = 0; line[i] != '\n'; i++) {
+            isValid = 1;
+            if (line[i] != '0' && line[i] != '1') {
                 isValid = 0;
                 break;
             }
