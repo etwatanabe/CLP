@@ -2,12 +2,7 @@
 #include <stdlib.h>
 
 #define MAX_STACK_SIZE 100
-
-void initStack(void);
-void push(char*);
-void pop();
-int parser(FILE*);
-void printStack(void);
+#define MAX_OUTPUT_SIZE 10
 
 // Estrutura para representar a pilha
 typedef struct {
@@ -15,6 +10,11 @@ typedef struct {
     int top;
 } Stack;
 Stack stack = {"", -1};
+
+typedef enum {
+    P1, P2, NONE
+} fct;
+fct output[MAX_OUTPUT_SIZE];
 
 // Funções para manipular a pilha
 void initStack() {
@@ -43,26 +43,41 @@ void pop() {
     }
 }
 
-void printStack() {
-    for (int i = 0; i <= stack.top; i++) {
-        printf(" %c ", stack.items[i]);
+void printStack(int i, int d, fct p) {
+    printf("%2d  %2d ", i, d);
+
+    if (p == P1) {
+        printf("  P1    ");
+    } else if (p == P2) {
+        printf("  P2    ");
+    } else {
+        printf("  -     ");
+    };
+
+    for (int j = stack.top; j >= 0; j--) {
+        printf("%c", stack.items[j]);
     }
     printf("\n");
 }
 
 // Função para simular o autômato de pilha
 int parser(FILE *fp) {
+    int i = 0;
+
+    printStack(i++, 0, NONE);
+    initStack();
+
     char token = fgetc(fp);
     while (token != EOF) {
-        printStack();
-        if      (token=='a' && stack.items[stack.top]=='S') { pop(); push("aSb"); }
-        else if (token=='b' && stack.items[stack.top]=='S') { pop(); push("aSb"); }
-        else if (token=='c' && stack.items[stack.top]=='S') { pop(); push("c"); }
-        else if (token=='a' && stack.items[stack.top]=='a') { pop(); token = fgetc(fp); }
-        else if (token=='b' && stack.items[stack.top]=='b') { pop(); token = fgetc(fp); }
-        else if (token=='c' && stack.items[stack.top]=='c') { pop(); token = fgetc(fp); }
+        if      (token=='a' && stack.items[stack.top]=='S') { printStack(i++, 1, P1); pop(); push("aSb"); }
+        else if (token=='b' && stack.items[stack.top]=='S') { printStack(i++, 1, P1); pop(); push("aSb");  }
+        else if (token=='c' && stack.items[stack.top]=='S') { printStack(i++, 2, P2); pop(); push("c"); }
+        else if (token=='a' && stack.items[stack.top]=='a') { printStack(i++, 3, NONE); pop(); token = fgetc(fp); }
+        else if (token=='b' && stack.items[stack.top]=='b') { printStack(i++, 4, NONE); pop(); token = fgetc(fp); }
+        else if (token=='c' && stack.items[stack.top]=='c') { printStack(i++, 5, NONE); pop(); token = fgetc(fp); }
         else    { return 1; }
     }
+    printStack(i, -1, NONE);
     if (stack.top != -1)
         return 1;
     return 0;
@@ -75,9 +90,8 @@ int main() {
         return 1;
     }
 
-    initStack();
-
-    printf("STACK\n00 01 02 03 04 05 06 07 08 09 10 11 12 13\n============================================\n");
+    printf(" i   d   p         Stack\n"
+           "=== === ===    =============\n");
 
     if (!parser(fp)) {
         printf("Palavra reconhecida pelo automato.");
