@@ -2,7 +2,6 @@
 #include <stdlib.h>
 
 #define MAX_STACK_SIZE 100
-#define MAX_OUTPUT_SIZE 10
 
 // Estrutura para representar a pilha
 typedef struct {
@@ -14,7 +13,6 @@ Stack stack = {"", -1};
 typedef enum {
     P1, P2, NONE
 } fct;
-fct output[MAX_OUTPUT_SIZE];
 
 // Funções para manipular a pilha
 void initStack() {
