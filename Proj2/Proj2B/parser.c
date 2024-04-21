@@ -98,7 +98,7 @@ int parser(FILE *fp) {
         else if (word[token]=='a' && stack.items[stack.top]=='a') { printStack(i++, q, 3, NONE, word, dot++); pop(); token++; }
         else if (word[token]=='b' && stack.items[stack.top]=='b') { printStack(i++, q, 4, NONE, word, dot++); pop(); token++; }
         else if (word[token]=='c' && stack.items[stack.top]=='c') { printStack(i++, q, 5, NONE, word, dot++); pop(); token++; }
-        else                                                      { printStack(i, q, -1, NONE, word, dot); printf("Caracter nao reconhecido. ASCII CODE: %d\n", word[token]); return 0; }
+        else                                                      { printStack(i, q, -1, NONE, word, dot); printf("Caracter invalido. ASCII CODE: %d\n", word[token]); return 0; }
     }
     printStack(i, q, -1, NONE, word, dot);
     if (stack.top != -1) {
