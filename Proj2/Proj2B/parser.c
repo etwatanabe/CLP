@@ -66,7 +66,7 @@ void printStack(int i, int q, int d, fct p, char* word, int dot) {
     else if (p == P2) { printf("  P2  "); } 
     else              { printf("  -   "); }
 
-    for(int i = 0; word[i] != '\n' && word[i] != '\0'; i++) {
+    for(int i = 0; word[i] != '\r' && word[i] != '\n' && word[i] != '\0'; i++) {
         if (i == dot) {
             printf(".");
         }
@@ -91,14 +91,14 @@ int parser(FILE *fp) {
     printStack(i++, q++, 0, NONE, word, dot);
     initStack();
     
-    while (word[token] != '\n' && word[token] != '\0') {
+    while (word[token] != '\r' && word[token] != '\n' && word[token] != '\0') {
         if      (word[token]=='a' && stack.items[stack.top]=='S') { printStack(i++, q, 1, P1, word, dot); pop(); push("aSb"); }
         else if (word[token]=='b' && stack.items[stack.top]=='S') { printStack(i++, q, 1, P1, word, dot); pop(); push("aSb");  }
         else if (word[token]=='c' && stack.items[stack.top]=='S') { printStack(i++, q, 2, P2, word, dot); pop(); push("c"); }
         else if (word[token]=='a' && stack.items[stack.top]=='a') { printStack(i++, q, 3, NONE, word, dot++); pop(); token++; }
         else if (word[token]=='b' && stack.items[stack.top]=='b') { printStack(i++, q, 4, NONE, word, dot++); pop(); token++; }
         else if (word[token]=='c' && stack.items[stack.top]=='c') { printStack(i++, q, 5, NONE, word, dot++); pop(); token++; }
-        else                                                      { printStack(i, q, -1, NONE, word, dot); return 0; }
+        else                                                      { printStack(i, q, -1, NONE, word, dot); printf("Caracter nao reconhecido. ASCII CODE: %d\n", word[token]); return 0; }
     }
     printStack(i, q, -1, NONE, word, dot);
     if (stack.top != -1) {

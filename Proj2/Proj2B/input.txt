@@ -1,5 +1,2 @@
-acb
-aaaaacbbbb
-aaacbbbb
-accb
-aaaaaacbbbbbb
+aacbbc
+aaacbbb
