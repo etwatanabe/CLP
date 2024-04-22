@@ -19,6 +19,7 @@ int c = 0;
 int valid = 1;
 int procedure[MAX_WORD_LENGTH];
 int procedureCount;
+int cont = 0;
 
 FILE *in_fp, *fopen();
 
@@ -212,8 +213,6 @@ void expr() {
         lex();
         term();
     }
-    
-    //printProcedures();
     //printf("Saindo de <expr>\n");
 }
 
@@ -249,11 +248,11 @@ void factor() {
             if (nextToken == RIGHT_PAREN) {
                 lex();
             } else {
-                printf("Erro sintatico: esperado ')'");
+                printf("Erro sintatico: esperado ')'\n");
                 valid = 0;
             }
         } else {
-            printf("Erro sintatico: esperado identificador, constante inteira ou '('");
+            printf("Erro sintatico: esperado identificador, constante inteira ou '('\n");
             valid = 0;
         }
     }
