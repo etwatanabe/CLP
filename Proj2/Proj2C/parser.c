@@ -17,7 +17,8 @@ int nextToken;
 char word[MAX_WORD_LENGTH];
 int c = 0;
 int valid = 1;
-int contExpr;
+int procedure[MAX_WORD_LENGTH];
+int procedureCount;
 
 FILE *in_fp, *fopen();
 
@@ -54,6 +55,7 @@ int lookup(char);
 void expr(void);
 void term(void);
 void factor(void);
+void printProcedures(void);
 
 /* Funcao principal */
 int main() {
@@ -68,14 +70,16 @@ int main() {
                     word[i] = '\0';
                 }
             }
-            printf("Expressao: %s", word);
+            printf("Expressao: %s\n", word);
 
             getChar();
             do {
+                procedureCount = -1;
                 lex();
                 expr();
+                printProcedures();
                 if(valid) {
-                    printf("\nExpressao aceita.");
+                    printf("Expressao aceita.");
                 }
             } while (nextToken != EOF);
             printf("\n\n");
@@ -114,7 +118,7 @@ void getChar() {
 
 /* Funcao para chamar getChar ate que ela retorne um caractere diferente de espaco em branco */
 void getNonBlank() {
-    while (isspace(nextChar) && nextChar != '\r' && nextChar != '\n') {
+    while (isspace(nextChar)) {
         getChar();
     }
 }
@@ -196,20 +200,34 @@ int lookup(char ch) {
 /* Analisa sintaticamente cadeias na linguagem gerada pela regra: <expr> -> <term> {(+ | -) <term>} */
 void expr() {
     // printf("Entrando em <expr>\n");
-    printf("\n<EXPR> -> <TERM> {(+|-) <TERM>}");
+    procedure[++procedureCount] = 0;
+    int temp = procedureCount;
     term();
+    if (nextToken == ADD_OP) {
+        procedure[temp] = 1;
+    } else if (nextToken == SUB_OP) {
+        procedure[temp] = 2;
+    }
     while (nextToken == ADD_OP || nextToken == SUB_OP) {
         lex();
         term();
     }
+    
+    //printProcedures();
     //printf("Saindo de <expr>\n");
 }
 
 /* Analisa sintaticamente cadeias na linguagem gerada pela regra: <term> -> <factor> {(* | /) <factor>} */
 void term() {
     // printf("Entrando em <term>\n");
-    printf("\n<TERM> -> <FACTOR> {(*|/) <FACTOR>}");
+    procedure[++procedureCount] = 3;
+    int temp = procedureCount;
     factor();
+    if (nextToken == MULT_OP) {
+        procedure[temp] = 4;
+    } else if (nextToken == DIV_OP) {
+        procedure[temp] = 5;
+    }
     while (nextToken == MULT_OP || nextToken == DIV_OP) {
         lex();
         factor();
@@ -220,23 +238,58 @@ void term() {
 /* Analisa sintaticamente cadeias na linguagem gerada pela regra: <factor> -> id | int_constant | (<expr>) */
 void factor() {
     // printf("Entrando em <factor>\n");
-    printf("\n<FACTOR> -> id | int_constant | (<EXPR>)");
     if (nextToken == IDENT || nextToken == INT_LIT) {
+        procedure[++procedureCount] = (nextToken == IDENT ? 6 : 7);
         lex();
     } else {
         if (nextToken == LEFT_PAREN) {
+            procedure[++procedureCount] = 8;
             lex();
             expr();
             if (nextToken == RIGHT_PAREN) {
                 lex();
             } else {
-                printf("\nErro sintatico: esperado ')'");
+                printf("Erro sintatico: esperado ')'");
                 valid = 0;
             }
         } else {
-            printf("\nErro sintatico: esperado identificador, constante inteira ou '('");
+            printf("Erro sintatico: esperado identificador, constante inteira ou '('");
             valid = 0;
         }
     }
     // printf("Saindo de <factor>\n");
+}
+
+void printProcedures() {
+    for(int i = 0; i <= procedureCount; i++) {
+        switch(procedure[i]) {
+            case 0:
+                printf("<EXPR> -> <TERM>\n");
+                break;
+            case 1:
+                printf("<EXPR> -> <TERM> + <TERM>\n");
+                break;
+            case 2:
+                printf("<EXPR> -> <TERM> - <TERM>\n");
+                break;
+            case 3:
+                printf("<TERM> -> <FACTOR>\n");
+                break;
+            case 4:
+                printf("<TERM> -> <FACTOR> * <FACTOR>\n");
+                break;
+            case 5:
+                printf("<TERM> -> <FACTOR> / <FACTOR>\n");
+                break;
+            case 6:
+                printf("<FACTOR> -> id\n");
+                break;
+            case 7:
+                printf("<FACTOR> -> int_constant\n");
+                break;
+            case 8:
+                printf("<FACTOR> -> ( <EXPR> )\n");
+                break;
+        }
+    }
 }
