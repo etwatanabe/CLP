@@ -2,7 +2,7 @@
 #include <ctype.h>
 
 #define MAX_WORD_LENGTH 100
-/* DeclaraÁıes globais */
+/* Declaraùùes globais */
 int charClass;
 char lexeme[MAX_WORD_LENGTH];
 char nextChar;
@@ -10,9 +10,10 @@ int lexLen;
 int nextToken;
 char word[MAX_WORD_LENGTH];
 int c = 0;
+int valid = 1;
 FILE *in_fp, *fopen();
 
-/* FunÁıes de DeclaraÁıes */
+/* Funùùes de Declaraùùes */
 void addChar();
 void getChar();
 void getNonBlank();
@@ -26,7 +27,7 @@ void factor();
 #define DIGIT 1
 #define UNKNOWN 99
 
-/* CÛdigos de tokens */
+/* Cùdigos de tokens */
 #define INT_LIT 10
 #define IDENT 11
 #define ASSIGN_OP 20
@@ -46,7 +47,7 @@ void expr(void);
 void term(void);
 void factor(void);
 
-/* FunÁ„o principal */
+/* Funùùo principal */
 int main() {
     if ((in_fp = fopen("input.txt", "r")) == NULL) {
         printf("ERROR - cannot open input.txt \n");
@@ -66,6 +67,9 @@ int main() {
                 lex();
                 expr();
             } while (nextToken != EOF);
+            if(valid) {
+                printf("\nExpressao aceita.");
+            }
             printf("\n\n");
         }
     }
@@ -79,17 +83,17 @@ void clearWordBuffer() {
     word[0] = '\0';
 }
 
-/* FunÁ„o para adicionar prÛximo caractere ao lexema */
+/* Funùùo para adicionar prùximo caractere ao lexema */
 void addChar() {
     if (lexLen <= 98) {
         lexeme[lexLen++] = nextChar;
         lexeme[lexLen] = 0;
     } else {
-        printf("Erro - lexema È muito longo \n");
+        printf("Erro - lexema ù muito longo \n");
     }
 }
 
-/* FunÁ„o para obter o prÛximo caractere da entrada e determinar sua classe de caracteres */
+/* Funùùo para obter o prùximo caractere da entrada e determinar sua classe de caracteres */
 void getChar() {
     nextChar = word[c++];
     if (nextChar != '\0') {
@@ -105,14 +109,14 @@ void getChar() {
     }
 }
 
-/* FunÁ„o para chamar getChar atÈ que ela retorne um caractere diferente de espaÁo em branco */
+/* Funùùo para chamar getChar atù que ela retorne um caractere diferente de espaùo em branco */
 void getNonBlank() {
     while (isspace(nextChar) && nextChar != '\r' && nextChar != '\n') {
         getChar();
     }
 }
 
-/* Analisador lÈxico simples para expressıes aritmÈticas */
+/* Analisador lùxico simples para expressùes aritmùticas */
 int lex() {
     lexLen = 0;
     getNonBlank();
@@ -147,11 +151,11 @@ int lex() {
             lexeme[3] = 0;
             break;
     }
-    printf("\nProximo token: %d, Proximo lexema: %s", nextToken, lexeme);
+    // printf("\nProximo token: %d, Proximo lexema: %s", nextToken, lexeme);
     return nextToken;
 }
 
-/* FunÁ„o para processar operadores e parÍnteses e retornar o token */
+/* Funùùo para processar operadores e parùnteses e retornar o token */
 int lookup(char ch) {
     switch (ch) {
         case '(':
@@ -224,9 +228,11 @@ void factor() {
                 lex();
             } else {
                 printf("\nErro sintatico: esperado ')'");
+                valid = 0;
             }
         } else {
             printf("\nErro sintatico: esperado identificador, constante inteira ou '('");
+            valid = 0;
         }
     }
     // printf("Saindo de <factor>\n");
