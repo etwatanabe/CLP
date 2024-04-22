@@ -17,6 +17,8 @@ int nextToken;
 char word[MAX_WORD_LENGTH];
 int c = 0;
 int valid = 1;
+int contExpr;
+
 FILE *in_fp, *fopen();
 
 /* Funcoes de Declaracoes */
@@ -72,21 +74,16 @@ int main() {
             do {
                 lex();
                 expr();
+                if(valid) {
+                    printf("\nExpressao aceita.");
+                }
             } while (nextToken != EOF);
-            if(valid) {
-                printf("\nExpressao aceita.");
-            }
             printf("\n\n");
         }
     }
 
     fclose(in_fp);
     return 0;
-}
-
-void clearWordBuffer() {
-    c = 0;
-    word[0] = '\0';
 }
 
 /* Funcao para adicionar proximo caractere ao lexema */
