@@ -1,8 +1,14 @@
+/*
+Universidade Estadual de Santa Cruz - Ciencia da Computacao
+Conceitos de Linguagens de Programacao
+Eduardo Takeshi Watanabe
+*/
+
 #include <stdio.h>
 #include <ctype.h>
 
 #define MAX_WORD_LENGTH 100
-/* Declaraùùes globais */
+/* Declaracoes globais */
 int charClass;
 char lexeme[MAX_WORD_LENGTH];
 char nextChar;
@@ -13,7 +19,7 @@ int c = 0;
 int valid = 1;
 FILE *in_fp, *fopen();
 
-/* Funùùes de Declaraùùes */
+/* Funcoes de Declaracoes */
 void addChar();
 void getChar();
 void getNonBlank();
@@ -27,7 +33,7 @@ void factor();
 #define DIGIT 1
 #define UNKNOWN 99
 
-/* Cùdigos de tokens */
+/* Codigos de tokens */
 #define INT_LIT 10
 #define IDENT 11
 #define ASSIGN_OP 20
@@ -47,7 +53,7 @@ void expr(void);
 void term(void);
 void factor(void);
 
-/* Funùùo principal */
+/* Funcao principal */
 int main() {
     if ((in_fp = fopen("input.txt", "r")) == NULL) {
         printf("ERROR - cannot open input.txt \n");
@@ -83,17 +89,17 @@ void clearWordBuffer() {
     word[0] = '\0';
 }
 
-/* Funùùo para adicionar prùximo caractere ao lexema */
+/* Funcao para adicionar proximo caractere ao lexema */
 void addChar() {
     if (lexLen <= 98) {
         lexeme[lexLen++] = nextChar;
         lexeme[lexLen] = 0;
     } else {
-        printf("Erro - lexema ù muito longo \n");
+        printf("Erro - lexema muito longo \n");
     }
 }
 
-/* Funùùo para obter o prùximo caractere da entrada e determinar sua classe de caracteres */
+/* Funcao para obter o proximo caractere da entrada e determinar sua classe de caracteres */
 void getChar() {
     nextChar = word[c++];
     if (nextChar != '\0') {
@@ -109,14 +115,14 @@ void getChar() {
     }
 }
 
-/* Funùùo para chamar getChar atù que ela retorne um caractere diferente de espaùo em branco */
+/* Funcao para chamar getChar ate que ela retorne um caractere diferente de espaco em branco */
 void getNonBlank() {
     while (isspace(nextChar) && nextChar != '\r' && nextChar != '\n') {
         getChar();
     }
 }
 
-/* Analisador lùxico simples para expressùes aritmùticas */
+/* Analisador lexico simples para expressoes aritmeticas */
 int lex() {
     lexLen = 0;
     getNonBlank();
@@ -155,7 +161,7 @@ int lex() {
     return nextToken;
 }
 
-/* Funùùo para processar operadores e parùnteses e retornar o token */
+/* Funcao para processar operadores e parenteses e retornar o token */
 int lookup(char ch) {
     switch (ch) {
         case '(':
