@@ -6,204 +6,201 @@ Eduardo Takeshi Watanabe
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
-#define MAX_SIZE 200
-#define MAX_CHAR 200
+#define MAX_SIZE 1000
+#define MAX_CHAR 1000
+#define N_ARY 5
 
 // Estrutura para representar a pilha
 typedef struct {
-    char items[MAX_SIZE];
+    int items[MAX_SIZE];
     int top;
 } Stack;
-Stack stack = {{}, -1}, productions = {{}, -1};
 
-// Estrutura para representar a arvore
-typedef struct {
-    int address[MAX_SIZE];
-    char symbol[MAX_SIZE];
-    int top;
-} Tree;
-Tree tree;
+// Variaveis globais
+Stack st, productions;
+int nTree[MAX_SIZE], binTree[MAX_SIZE];
 
-/* FUNCOES PARA MANUSEAR A PILHA */
-// Funcao para resetar stack
-void resetStack() {
-    while(stack.top >= 0) {
-        stack.items[stack.top--] = '\0';
-    }
-}
-
+/* FUNCOES PARA MANIPULAR PILHA */
 // Funcao para inicializar stack
-void initStack() {
-    stack.items[++stack.top] = 'E';
+void initStack(int value, Stack* stack) {
+    stack->top = 0;
+    stack->items[stack->top] = value;
 }
 
-// Funcao para imprimir as informacoes da pilha
-void printStack(int i, int q, int d, int prod, char* word, int dot) {
-    printf("%2d  %2d  %2d", i, q, d);
+// Funcao para resetar stack
+void resetStack(Stack* stack) {
+    stack->items[0] = '\0';
+    stack->top = -1;
+}
 
-    if (prod > 0) { printf("  P%d    ", prod); }
-    else          { printf("  --    "); }
-
-    for(int i = 0; word[i] != '\r' && word[i] != '\n' && word[i] != '\0'; i++) {
-        if (i == dot) {
-            printf(".");
-        }
-        printf("%c", word[i]);
-    }
-
-    printf("\t\t");
-    
-    for (int j = stack.top; j >= 0; j--) {
-        printf("%c", stack.items[j]);
+void printStack(Stack* stack) {
+    printf("Stack: ");
+    for(int i = stack->top; i >= 0; i--) {
+        printf("%d /", stack->items[i]);
     }
     printf("\n");
 }
 
 // Push
-void push(char* value) {
-    int i = 0;
-    while(value[i] != '\0') i++;
-    for (i = i - 1; i >= 0; i--) {
-        if (stack.top < MAX_SIZE - 1) {
-            stack.items[++stack.top] = value[i];
-        }
-        else {
-            printf("Stack Overflow\n");
-        }
+void push(int value, Stack* stack) {
+    if (stack->top < MAX_SIZE - 1) {
+        stack->items[++stack->top] = value;
+    }
+    else {
+        printf("Stack Overflow\n");
     }
 }
 
 // Pop
-void pop() {
-    if (stack.top >= 0) {
-         stack.items[stack.top--] = '\0';
+int pop(Stack* stack) {
+    if (stack->top >= 0) {
+        int value = stack->items[stack->top];
+        stack->items[stack->top--] = '\0';
+        return value;
     }
     else {
         printf("Stack Underflow\n");
+        return -1;
     }
 }
 
-/* FUNCOES PARA MANUSEAR AS PRODUCOES */
-// Funcao para resetar as producoes
-void resetProductions() {
-    while(productions.top >= 0) {
-        productions.items[productions.top--] = -1;
-    }
-}
-
-void printProductions() {
-    printf("Productions: ");
-    for(int i = 0; i <= productions.top; i++) {
-        printf("%d ", productions.items[i]);
-    }
-    printf("\n");
-}
-void resetTree() {
-    while(tree.top >= 0) {
-        tree.address[tree.top] = -1;
-        tree.symbol[tree.top--] = '\0';
-    }
-}
-
-void printTree() {
-    printf("Addr: ");
-    for(int i = 0; i <= tree.top; i++) {
-        printf("| %3d ", tree.address[i]);
-    }
-    printf("|\n");
-    printf("Symb: ");
-    for(int i = 0; i <= tree.top; i++) {
-        printf("| %3c ", tree.symbol[i]);
-    }
-    printf("|\n\n");
-}
-
-void productionsToTree() {
-    tree.address[++tree.top] = 0; tree.symbol[tree.top] = 'E';
+// Funcao para produzir uma arvore a partir de uma lista de producoes
+void nAryTree() {
+    int n;
     for(int i = 0; i <= productions.top; i++) {
         switch(productions.items[i]) {
+            case 0:
+                nTree[0] = 'E';
+                initStack(0, &st);
+                break;
             case 1:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '(';
-                tree.address[++tree.top] = 5*i+2; tree.symbol[tree.top] = 'E';
-                tree.address[++tree.top] = 5*i+3; tree.symbol[tree.top] = 'X';
-                tree.address[++tree.top] = 5*i+4; tree.symbol[tree.top] = 'E';
-                tree.address[++tree.top] = 5*i+5; tree.symbol[tree.top] = ')';
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '(';
+                nTree[N_ARY*n+2] = 'E';
+                nTree[N_ARY*n+3] = 'X';
+                nTree[N_ARY*n+4] = 'E';
+                nTree[N_ARY*n+5] = ')';
+                push(N_ARY*n+4, &st);
+                push(N_ARY*n+3, &st);
+                push(N_ARY*n+2, &st);
                 break;
             case 2:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '0'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '0';
+                break;
             case 3:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '1'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '1';
+                break;
             case 4:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = 'a'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = 'a';
+                break;
             case 5:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = 'b'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = 'b';
+                break;
             case 6:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = 'c'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = 'c';
+                break;
             case 7:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '+'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '+';
+                break;
             case 8:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '-'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '-';
+                break;
             case 9:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '*'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '*';
+                break;
             case 10:
-                tree.address[++tree.top] = 5*i+1; tree.symbol[tree.top] = '/'; break;
+                n = pop(&st);
+                nTree[N_ARY*n+1] = '/';
+                break;
         }
     }
-    printf("\n");
 }
 
-// Funcao para simular o automato de pilha
+void printTree(int* tree) {
+    for(int i = 0; i < MAX_SIZE; i++) {
+        if(tree[i] != 0) {
+            printf("|%3d", i);
+        }
+    }
+    printf("|\n");
+    for(int i = 0; i < MAX_SIZE; i++) {
+        if(tree[i] != 0) {
+            printf("| %c ", tree[i]);
+        }
+    }
+    printf("|\n");
+}
+
+void nToBin() {
+    // Reestruturando arvore
+    for(int i = 0; i < MAX_SIZE; i++) {
+        if(nTree[i] == '(' || nTree[i] == ')') {
+            nTree[i] = 0;
+        }
+        else if(nTree[i] == '0' || nTree[i] == '1' || nTree[i] == 'a' || nTree[i] == 'b' || nTree[i] == 'c') {
+            int father = (i - 1)/5;
+            nTree[father] = nTree[i];
+            nTree[i] = 0;
+        }
+        else if(nTree[i] == '+' || nTree[i] == '-' || nTree[i] == '*' || nTree[i] == '/') {
+            int father = (i-1)/N_ARY;
+            int grandfather = (father-3)/N_ARY;
+            nTree[grandfather] = nTree[i];
+            nTree[father] = 0;
+            nTree[i] = 0;
+        }
+    }
+}
+
 int parser(FILE *fp) {
-    int i = 0, dot = 0, index = 0;
+    int index = 0;
     char word[MAX_CHAR];
     fgets(word, MAX_CHAR, fp);
     
-    printf(" i   q   d   p           w                   Stack\n"
-            "=== === === ===   ===================   ===================\n");
-
-    printStack(i++, 0, 0, 0, word, dot);
-    initStack();
+    initStack('E', &st);
+    initStack(0, &productions);
     
     while (word[index] != '\r' && word[index] != '\n' && word[index] != '\0') {
         // Producoes
-        if      (word[index]=='(' && stack.items[stack.top]=='E') { printStack(i++, 1,  1,  1, word, dot); pop(); push("(EXE)"); productions.items[++productions.top] = 1; }
-        else if (word[index]=='0' && stack.items[stack.top]=='E') { printStack(i++, 1,  2,  2, word, dot); pop(); push("0"); productions.items[++productions.top] = 2; }
-        else if (word[index]=='1' && stack.items[stack.top]=='E') { printStack(i++, 1,  3,  3, word, dot); pop(); push("1"); productions.items[++productions.top] = 3; }
-        else if (word[index]=='a' && stack.items[stack.top]=='E') { printStack(i++, 1,  4,  4, word, dot); pop(); push("a"); productions.items[++productions.top] = 4; }
-        else if (word[index]=='b' && stack.items[stack.top]=='E') { printStack(i++, 1,  5,  5, word, dot); pop(); push("b"); productions.items[++productions.top] = 5; }
-        else if (word[index]=='c' && stack.items[stack.top]=='E') { printStack(i++, 1,  6,  6, word, dot); pop(); push("c"); productions.items[++productions.top] = 6; }
-        else if (word[index]=='+' && stack.items[stack.top]=='X') { printStack(i++, 1,  7,  7, word, dot); pop(); push("+"); productions.items[++productions.top] = 7; }
-        else if (word[index]=='-' && stack.items[stack.top]=='X') { printStack(i++, 1,  8,  8, word, dot); pop(); push("-"); productions.items[++productions.top] = 8; }
-        else if (word[index]=='*' && stack.items[stack.top]=='X') { printStack(i++, 1,  9,  9, word, dot); pop(); push("*"); productions.items[++productions.top] = 9; }
-        else if (word[index]=='/' && stack.items[stack.top]=='X') { printStack(i++, 1, 10, 10, word, dot); pop(); push("/"); productions.items[++productions.top] = 10; }
-        // Leituras++
-        else if (word[index]=='a' && stack.items[stack.top]=='a') { printStack(i++, 1, 11, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='b' && stack.items[stack.top]=='b') { printStack(i++, 1, 12, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='c' && stack.items[stack.top]=='c') { printStack(i++, 1, 13, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='0' && stack.items[stack.top]=='0') { printStack(i++, 1, 14, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='1' && stack.items[stack.top]=='1') { printStack(i++, 1, 15, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='(' && stack.items[stack.top]=='(') { printStack(i++, 1, 16, 0, word, dot++); pop(); index++; }
-        else if (word[index]==')' && stack.items[stack.top]==')') { printStack(i++, 1, 17, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='+' && stack.items[stack.top]=='+') { printStack(i++, 1, 18, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='-' && stack.items[stack.top]=='-') { printStack(i++, 1, 19, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='*' && stack.items[stack.top]=='*') { printStack(i++, 1, 20, 0, word, dot++); pop(); index++; }
-        else if (word[index]=='/' && stack.items[stack.top]=='/') { printStack(i++, 1, 21, 0, word, dot++); pop(); index++; }
+        if      (word[index]=='(' && st.items[st.top]=='E') { pop(&st); push(')', &st); push('E', &st); push('X', &st); push('E', &st); push('(', &st); push(1, &productions); }
+        else if (word[index]=='0' && st.items[st.top]=='E') { pop(&st); push('0', &st); push(2, &productions); }
+        else if (word[index]=='1' && st.items[st.top]=='E') { pop(&st); push('1', &st); push(3, &productions); }
+        else if (word[index]=='a' && st.items[st.top]=='E') { pop(&st); push('a', &st); push(4, &productions); }
+        else if (word[index]=='b' && st.items[st.top]=='E') { pop(&st); push('b', &st); push(5, &productions); }
+        else if (word[index]=='c' && st.items[st.top]=='E') { pop(&st); push('c', &st); push(6, &productions); }
+        else if (word[index]=='+' && st.items[st.top]=='X') { pop(&st); push('+', &st); push(7, &productions); }
+        else if (word[index]=='-' && st.items[st.top]=='X') { pop(&st); push('-', &st); push(8, &productions); }
+        else if (word[index]=='*' && st.items[st.top]=='X') { pop(&st); push('*', &st); push(9, &productions); }
+        else if (word[index]=='/' && st.items[st.top]=='X') { pop(&st); push('/', &st); push(10, &productions); }
+        // Leituras
+        else if (word[index]=='a' && st.items[st.top]=='a') { pop(&st); index++; }
+        else if (word[index]=='b' && st.items[st.top]=='b') { pop(&st); index++; }
+        else if (word[index]=='c' && st.items[st.top]=='c') { pop(&st); index++; }
+        else if (word[index]=='0' && st.items[st.top]=='0') { pop(&st); index++; }
+        else if (word[index]=='1' && st.items[st.top]=='1') { pop(&st); index++; }
+        else if (word[index]=='(' && st.items[st.top]=='(') { pop(&st); index++; }
+        else if (word[index]==')' && st.items[st.top]==')') { pop(&st); index++; }
+        else if (word[index]=='+' && st.items[st.top]=='+') { pop(&st); index++; }
+        else if (word[index]=='-' && st.items[st.top]=='-') { pop(&st); index++; }
+        else if (word[index]=='*' && st.items[st.top]=='*') { pop(&st); index++; }
+        else if (word[index]=='/' && st.items[st.top]=='/') { pop(&st); index++; }
         // Excecao
-        else    { printStack(i, 0, -1, 0, word, dot); printf("Caracter invalido. ASCII CODE: %d\n", word[index]); return 0; }
+        else    { printf("Caracter invalido. ASCII CODE: %d\n", word[index]); return 0; }
     }
-    printStack(i, 0, -1, 0, word, dot);
-    if (stack.top != -1) {
+
+    if (st.top != -1) {
         return 0;
     }
     return 1;
-}
-
-void reset() {
-    resetStack();
-    resetProductions();
-    resetTree();
 }
 
 int main() {
@@ -214,14 +211,14 @@ int main() {
     }
 
     while(!feof(fp)) {
-        reset();
-
         printf(parser(fp) ? "Palavra reconhecida.\n\n" : "Palavra NAO reconhecida.\n\n");
-
-        printProductions();
-        productionsToTree();
-        printTree();
+        nAryTree();
+        printTree(nTree);
+        nToBin();
+        printTree(nTree);
     }
+
+
 
     fclose(fp);
     return 0;
