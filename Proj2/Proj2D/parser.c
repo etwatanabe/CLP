@@ -10,6 +10,9 @@ Eduardo Takeshi Watanabe
 #define MAX_SIZE 1000
 #define MAX_CHAR 1000
 #define N_ARY 5
+#define A 5
+#define B 3
+#define C 2
 
 // Estrutura para representar a pilha
 typedef struct {
@@ -19,7 +22,7 @@ typedef struct {
 
 // Variaveis globais
 Stack st, productions;
-int nTree[MAX_SIZE], binTree[MAX_SIZE];
+int nTree[MAX_SIZE], binTree[MAX_SIZE], binTreeSize = 0, npr[MAX_SIZE], nprSize = 0;
 
 /* FUNCOES PARA MANIPULAR PILHA */
 // Funcao para inicializar stack
@@ -30,7 +33,6 @@ void initStack(int value, Stack* stack) {
 
 // Funcao para resetar stack
 void resetStack(Stack* stack) {
-    stack->items[0] = '\0';
     stack->top = -1;
 }
 
@@ -140,8 +142,18 @@ void printTree(int* tree) {
     printf("|\n");
 }
 
+void printPostOrder(int* tree, int n, int index) {
+    if (index >= n)
+        return;
+    int leftChild = 2 * index + 1;
+    int rightChild = 2 * index + 2;
+    printPostOrder(tree, n, leftChild);
+    printPostOrder(tree, n, rightChild);
+    printf("%c ", tree[index]);
+    npr[nprSize++] = tree[index];
+}
+
 void nToBin() {
-    // Reestruturando arvore
     for(int i = 0; i < MAX_SIZE; i++) {
         if(nTree[i] == '(' || nTree[i] == ')') {
             nTree[i] = 0;
@@ -159,17 +171,78 @@ void nToBin() {
             nTree[i] = 0;
         }
     }
+    for(int i = 0; i < MAX_SIZE; i++) {
+        if(nTree[i] != 0) {
+            binTree[binTreeSize++] = nTree[i];
+        }
+    }
 }
 
-int parser(FILE *fp) {
+void pcode() {
+    int x, y;
+    for(int i = 0; i < nprSize; i++) {
+        switch(npr[i]) {
+            case '0':
+                printf("LIT 0 0\n");
+                push(0, &st);
+                break;
+            case '1':
+                printf("LIT 0 1\n");
+                push(1, &st);
+                break;
+            case 'a':
+                printf("LOD 0 3\n");
+                push(A, &st);
+                break;
+            case 'b':
+                printf("LOD 0 4\n");
+                push(B, &st);
+                break;
+            case 'c':
+                printf("LOD 0 5\n");
+                push(C, &st);
+                break;
+            case '+':
+                printf("OPR 0 2\n");
+                y = pop(&st);
+                x = pop(&st);
+                push(x+y, &st);
+                break;
+            case '-':
+                printf("OPR 0 3\n");
+                y = pop(&st);
+                x = pop(&st);
+                push(x-y, &st);
+                break;
+            case '*':
+                printf("OPR 0 4\n");
+                y = pop(&st);
+                x = pop(&st);
+                push(x*y, &st);
+                break;
+            case '/':
+                printf("OPR 0 5\n");
+                y = pop(&st);
+                x = pop(&st);
+                push(x+y, &st);
+                break;
+        }
+    }
+}
+
+int parser(char* word) {
+    for(int i = 0; word[i] != '\0'; i++) {
+        if(word[i] == '\r' || word[i] == '\n') {
+            word[i] = '\0';
+            break;
+        }
+    }
     int index = 0;
-    char word[MAX_CHAR];
-    fgets(word, MAX_CHAR, fp);
     
     initStack('E', &st);
     initStack(0, &productions);
     
-    while (word[index] != '\r' && word[index] != '\n' && word[index] != '\0') {
+    while (word[index] != '\0') {
         // Producoes
         if      (word[index]=='(' && st.items[st.top]=='E') { pop(&st); push(')', &st); push('E', &st); push('X', &st); push('E', &st); push('(', &st); push(1, &productions); }
         else if (word[index]=='0' && st.items[st.top]=='E') { pop(&st); push('0', &st); push(2, &productions); }
@@ -203,6 +276,18 @@ int parser(FILE *fp) {
     return 1;
 }
 
+void reset() {
+    for(int i = 0; i < MAX_SIZE; i++) {
+        nTree[i] = 0;
+        binTree[i] = 0;
+        npr[i] = 0;
+    }
+    binTreeSize = 0;
+    nprSize = 0;
+    resetStack(&st);
+    resetStack(&productions);
+}
+
 int main() {
     FILE *fp = fopen("input.txt", "r");
     if (fp == NULL) {
@@ -210,12 +295,27 @@ int main() {
         return 1;
     }
 
+    char word[MAX_CHAR];
+
     while(!feof(fp)) {
-        printf(parser(fp) ? "Palavra reconhecida.\n\n" : "Palavra NAO reconhecida.\n\n");
+        reset();
+        printf("\n==============================================================================================================\n\n");
+        fgets(word, MAX_CHAR, fp);
+        printf(parser(word) ? "Palavra '%s' reconhecida.\n" : "Palavra '%s' NAO reconhecida.\n", word);
+
         nAryTree();
+        printf("\nArvore n-aria codificada:\n");
         printTree(nTree);
+
         nToBin();
-        printTree(nTree);
+        printf("\nArvore binaria codificada:\n");
+        printTree(binTree);
+
+        printf("\nNPR da arvore binaria:\n");
+        printPostOrder(binTree, binTreeSize, 0);
+
+        printf("\n\nNPR para p-code:\n");
+        pcode();
     }
 
 
