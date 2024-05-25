@@ -60,7 +60,7 @@ void generate_pcode(int expression[]) {
                 if(op == '*') {
                     printf("OPR 0 4\n");
                     push(x+y, &values);
-                } else {
+                } else4 {
                     printf("OPR 0 5\n");
                     push(x/y, &values);
 
@@ -68,7 +68,7 @@ void generate_pcode(int expression[]) {
                 
         
         } else if(expression[i] != '('){
-            printf("LOD 0 %d", expression[i]);
+            printf("LIT 0 %d", expression[i]);
             push(expression[i], &values);
         }
     }
