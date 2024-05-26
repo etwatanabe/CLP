@@ -1,84 +1,53 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#define MAX_SIZE 100
+#define NUM_EXPRESSIONS 10
+#define MAX_INSTRUCTIONS 15
 
-typedef struct {
-    int values[MAX_SIZE];
-    int top;
-} Stack;
-
-// Push
-void push(int value, Stack* stack) {
-    if (stack->top < MAX_SIZE - 1) {
-        stack->items[++stack->top] = value;
-    }
-    else {
-        printf("Stack Overflow\n");
-    }
-}
-
-// Pop
-int pop(Stack* stack) {
-    if (stack->top >= 0) {
-        int value = stack->items[stack->top];
-        stack->items[stack->top--] = '\0';
-        return value;
-    }
-    else {
-        printf("Stack Underflow\n");
-        return -1;
+// Função que gera código p-code a partir de código intermediário
+void gera_pcode(char* code) {
+    if (strncmp(code, "PUSH(", 5) == 0) {
+        int valor;
+        sscanf(code, "PUSH(%d)", &valor);
+        printf("LIT 0 %d\n", valor);
+    } else if (strstr(code, "PUSH(x ADD y)")) {
+        printf("OPR 0 2\n");
+    } else if (strstr(code, "PUSH(x SUB y)")) {
+        printf("OPR 0 3\n");
+    } else if (strstr(code, "PUSH(x MUL y)")) {
+        printf("OPR 0 4\n");
+    } else if (strstr(code, "PUSH(x DIV y)")) {
+        printf("OPR 0 5\n");
+    } else {
+        fprintf(stderr, "Operação desconhecida: %s\n", code);
+        exit(1);
     }
 }
-
-void generate_pcode(int expression[]) {
-    Stack operators, values;
-    int x, y, op;
-    for(int i = 0; expression[i] != '\0'; i++) {
-        if (expression[i] == '+' || expression[i] == '-') {
-            push(expression[i], &operators);
-
-        } else if(expression[i] == '*' || expression[i] == '/') {
-            if(expression[i+1] == '(') {
-                push(expression[i], &operators);
-            } else {
-                push(expression[i+1], &values);
-                y = pop(&values);
-                x = pop(&values);
-                if(expression[i] == '*') {
-                    printf("OPR 0 4\n");
-                    push(x*y, &values);
-                } else {
-                    printf("OPR 0 5\n");
-                    push(x/y, &values);
-                }
-            }
-        } else if(expression[i] == ')') {
-            while(operators[operators.top] == '*' || operators[operators.top] == '/') {
-                op = pop(&operators);
-                y = pop(&values);
-                x = pop(&values);
-                if(op == '*') {
-                    printf("OPR 0 4\n");
-                    push(x+y, &values);
-                } else4 {
-                    printf("OPR 0 5\n");
-                    push(x/y, &values);
-
-            }
-                
-        
-        } else if(expression[i] != '('){
-            printf("LIT 0 %d", expression[i]);
-            push(expression[i], &values);
-        }
-    }
-}
-
-
 
 int main() {
-    
+    char* expressions[NUM_EXPRESSIONS][MAX_INSTRUCTIONS] = {
+        {"PUSH(3)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(5)", "y=POP(); x=POP(); PUSH(x ADD y)"},
+        {"PUSH(4)", "PUSH(6)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x DIV y)", "PUSH(7)", "y=POP(); x=POP(); PUSH(x ADD y)", "y=POP(); x=POP(); PUSH(x SUB y)"},
+        {"PUSH(8)", "PUSH(7)", "PUSH(1)", "y=POP(); x=POP(); PUSH(x ADD y)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(5)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x DIV y)", "y=POP(); x=POP(); PUSH(x SUB y)"},
+        {"PUSH(2)", "PUSH(9)", "PUSH(5)", "y=POP(); x=POP(); PUSH(x SUB y)", "y=POP(); x=POP(); PUSH(x ADD y)"},
+        {"PUSH(3)", "PUSH(4)", "y=POP(); x=POP(); PUSH(x ADD y)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(6)", "y=POP(); x=POP(); PUSH(x SUB y)"},
+        {"PUSH(1)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(3)", "PUSH(4)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x DIV y)", "y=POP(); x=POP(); PUSH(x SUB y)", "y=POP(); x=POP(); PUSH(x ADD y)"},
+        {"PUSH(5)", "PUSH(3)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(8)", "y=POP(); x=POP(); PUSH(x ADD y)", "y=POP(); x=POP(); PUSH(x SUB y)"},
+        {"PUSH(8)", "PUSH(4)", "y=POP(); x=POP(); PUSH(x DIV y)", "PUSH(7)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(3)", "y=POP(); x=POP(); PUSH(x SUB y)", "y=POP(); x=POP(); PUSH(x ADD y)",},
+        {"PUSH(6)", "PUSH(3)", "PUSH(2)", "y=POP(); x=POP(); PUSH(x SUB y)", "y=POP(); x=POP(); PUSH(x MUL y)", "PUSH(5)", "y=POP(); x=POP(); PUSH(x ADD y)",},
+        {"PUSH(9)", "PUSH(1)", "y=POP(); x=POP(); PUSH(x ADD y)", "PUSH(5)", "y=POP(); x=POP(); PUSH(x DIV y)", "PUSH(6)", "PUSH(2)", "PUSH(3)", "y=POP(); x=POP(); PUSH(x MUL y)", "y=POP(); x=POP(); PUSH(x SUB y)", "y=POP(); x=POP(); PUSH(x ADD y)",}
+    };
 
-    
-    
+    for (int i = 0; i < NUM_EXPRESSIONS; i++) {
+        printf("Expressao %d:\n", i + 1);
+        int j = 0;
+        while (expressions[i][j] != NULL) {
+            gera_pcode(expressions[i][j]);
+            j++;
+        }
+        printf("\n");
+    }
+
+    return 0;
 }
