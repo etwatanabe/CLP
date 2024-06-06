@@ -8,29 +8,30 @@ Eduardo Takeshi Watanabe
 #include <ctype.h>
 
 #define MAX_WORD_LENGTH 100
+#define MAX_SIZE 100
+#define MAX_TREE 1000
+#define N_ARY 3
+
+typedef struct {
+    int items[MAX_SIZE];
+    int top;
+} Stack;
+
 /* Declaracoes globais */
 int charClass;
-char lexeme[MAX_WORD_LENGTH];
+char lexeme[MAX_SIZE][MAX_WORD_LENGTH];
 char nextChar;
 int lexLen;
+int lexCount = -1;
 int nextToken;
 char word[MAX_WORD_LENGTH];
 int c = 0;
 int valid = 1;
-int procedure[MAX_WORD_LENGTH];
-int procedureCount;
 int cont = 0;
 
-FILE *in_fp, *fopen();
 
-/* Funcoes de Declaracoes */
-void addChar();
-void getChar();
-void getNonBlank();
-int lex();
-void expr();
-void term();
-void factor();
+Stack productions = {{}, -1};
+FILE *in_fp;
 
 /* Classes de caracteres */
 #define LETTER 0
@@ -48,54 +49,27 @@ void factor();
 #define LEFT_PAREN 25
 #define RIGHT_PAREN 26
 
-void addChar(void);
-void getChar(void);
-void getNonBlank(void);
-int lex(void);
+/* Declaracao das funcoes */
+void addChar();
+void getChar();
+void getNonBlank();
+int lex();
 int lookup(char);
-void expr(void);
-void term(void);
-void factor(void);
-void printProcedures(void);
-
-/* Funcao principal */
-int main() {
-    if ((in_fp = fopen("input.txt", "r")) == NULL) {
-        printf("ERROR - cannot open input.txt \n");
-    } else {
-        while(!feof(in_fp)) {
-            c = 0;
-            fgets(word, MAX_WORD_LENGTH, in_fp);
-            for(int i = 0; word[i] != '\0'; i++) {
-                if (word[i] == '\r' || word[i] == '\n') {
-                    word[i] = '\0';
-                }
-            }
-            printf("Expressao: %s\n", word);
-
-            getChar();
-            do {
-                procedureCount = -1;
-                lex();
-                expr();
-                printProcedures();
-                if(valid) {
-                    printf("Expressao aceita.");
-                }
-            } while (nextToken != EOF);
-            printf("\n\n");
-        }
-    }
-
-    fclose(in_fp);
-    return 0;
-}
+void expr();
+void term();
+void factor();
+void printProductions();
+void initStack(Stack*);
+void push(int, Stack*);
+int pop(Stack*);
+void nAryTree();
+void printTree(int*);
 
 /* Funcao para adicionar proximo caractere ao lexema */
 void addChar() {
     if (lexLen <= 98) {
-        lexeme[lexLen++] = nextChar;
-        lexeme[lexLen] = 0;
+        lexeme[lexCount][lexLen++] = nextChar;
+        lexeme[lexCount][lexLen] = 0;
     } else {
         printf("Erro - lexema muito longo \n");
     }
@@ -136,6 +110,7 @@ int lex() {
                 addChar();
                 getChar();
             }
+            lexCount++;
             nextToken = IDENT;
             break;
         case DIGIT:
@@ -145,6 +120,7 @@ int lex() {
                 addChar();
                 getChar();
             }
+            lexCount++;
             nextToken = INT_LIT;
             break;
         case UNKNOWN:
@@ -153,13 +129,13 @@ int lex() {
             break;
         case EOF:
             nextToken = EOF;
-            lexeme[0] = 'E';
-            lexeme[1] = 'O';
-            lexeme[2] = 'F';
-            lexeme[3] = 0;
+            lexeme[lexCount][0] = 'E';
+            lexeme[lexCount][1] = 'O';
+            lexeme[lexCount][2] = 'F';
+            lexeme[lexCount][3] = 0;
             break;
     }
-    // printf("\nProximo token: %d, Proximo lexema: %s", nextToken, lexeme);
+    // printf("\nProximo token: %d, Proximo lexema: %s", nextToken, lexeme[lexCount]);
     return nextToken;
 }
 
@@ -201,13 +177,13 @@ int lookup(char ch) {
 /* Analisa sintaticamente cadeias na linguagem gerada pela regra: <expr> -> <term> {(+ | -) <term>} */
 void expr() {
     // printf("Entrando em <expr>\n");
-    procedure[++procedureCount] = 0;
-    int temp = procedureCount;
+    productions.items[++productions.top] = 1;
+    int temp = productions.top;
     term();
     if (nextToken == ADD_OP) {
-        procedure[temp] = 1;
+        productions.items[temp] = 2;
     } else if (nextToken == SUB_OP) {
-        procedure[temp] = 2;
+        productions.items[temp] = 3;
     }
     while (nextToken == ADD_OP || nextToken == SUB_OP) {
         lex();
@@ -219,13 +195,13 @@ void expr() {
 /* Analisa sintaticamente cadeias na linguagem gerada pela regra: <term> -> <factor> {(* | /) <factor>} */
 void term() {
     // printf("Entrando em <term>\n");
-    procedure[++procedureCount] = 3;
-    int temp = procedureCount;
+    productions.items[++productions.top] = 4;
+    int temp = productions.top;
     factor();
     if (nextToken == MULT_OP) {
-        procedure[temp] = 4;
+        productions.items[temp] = 5;
     } else if (nextToken == DIV_OP) {
-        procedure[temp] = 5;
+        productions.items[temp] = 6;
     }
     while (nextToken == MULT_OP || nextToken == DIV_OP) {
         lex();
@@ -238,11 +214,11 @@ void term() {
 void factor() {
     // printf("Entrando em <factor>\n");
     if (nextToken == IDENT || nextToken == INT_LIT) {
-        procedure[++procedureCount] = (nextToken == IDENT ? 6 : 7);
+        productions.items[++productions.top] = (nextToken == IDENT ? 7 : 8);
         lex();
     } else {
         if (nextToken == LEFT_PAREN) {
-            procedure[++procedureCount] = 8;
+            productions.items[++productions.top] = 9;
             lex();
             expr();
             if (nextToken == RIGHT_PAREN) {
@@ -259,36 +235,155 @@ void factor() {
     // printf("Saindo de <factor>\n");
 }
 
-void printProcedures() {
-    for(int i = 0; i <= procedureCount; i++) {
-        switch(procedure[i]) {
-            case 0:
-                printf("<EXPR> -> <TERM>\n");
-                break;
+void printProductions() {
+    for(int i = 0; i <= productions.top; i++) {
+        printf("P%d ", productions.items[i]);
+    }
+    printf("\n");
+}
+
+/* Funções para manipulação da pilha */
+void initStack(Stack *s) {
+    s->top = -1;
+}
+
+void push(int value, Stack *s) {
+    if (s->top < MAX_SIZE - 1) {
+        s->items[++s->top] = value;
+    } else {
+        printf("Erro - pilha cheia\n");
+    }
+}
+
+int pop(Stack *s) {
+    if (s->top > -1) {
+        return s->items[s->top--];
+    } else {
+        printf("Erro - pilha vazia\n");
+        return -1;
+    }
+}
+
+/* Função para construir a árvore N-ária */
+void nAryTree() {
+    int n, nTree[MAX_TREE] = {};
+    Stack st;
+    initStack(&st);
+    nTree[0] = 'E';
+    push(0, &st);
+
+    for(int i = 0; i <= productions.top; i++) {
+        n = pop(&st);
+        switch(productions.items[i]) {
             case 1:
-                printf("<EXPR> -> <TERM> + <TERM>\n");
+                nTree[N_ARY*n+1] = 'T';
+                push(N_ARY*n+1, &st);
                 break;
             case 2:
-                printf("<EXPR> -> <TERM> - <TERM>\n");
+                nTree[N_ARY*n+1] = 'T';
+                nTree[N_ARY*n+2] = '+';
+                nTree[N_ARY*n+3] = 'T';
+                push(N_ARY*n+3, &st);
+                push(N_ARY*n+1, &st);
                 break;
             case 3:
-                printf("<TERM> -> <FACTOR>\n");
+                nTree[N_ARY*n+1] = 'T';
+                nTree[N_ARY*n+2] = '-';
+                nTree[N_ARY*n+3] = 'T';
+                push(N_ARY*n+3, &st);
+                push(N_ARY*n+1, &st);
                 break;
             case 4:
-                printf("<TERM> -> <FACTOR> * <FACTOR>\n");
+                nTree[N_ARY*n+1] = 'F';
+                push(N_ARY*n+1, &st);
                 break;
             case 5:
-                printf("<TERM> -> <FACTOR> / <FACTOR>\n");
+                nTree[N_ARY*n+1] = 'F';
+                nTree[N_ARY*n+2] = '+';
+                nTree[N_ARY*n+3] = 'F';
+                push(N_ARY*n+3, &st);
+                push(N_ARY*n+1, &st);
                 break;
             case 6:
-                printf("<FACTOR> -> id\n");
+                nTree[N_ARY*n+1] = 'F';
+                nTree[N_ARY*n+2] = '-';
+                nTree[N_ARY*n+3] = 'F';
+                push(N_ARY*n+3, &st);
+                push(N_ARY*n+1, &st);
                 break;
             case 7:
-                printf("<FACTOR> -> int_constant\n");
+                nTree[N_ARY*n+1] = 'i';
                 break;
             case 8:
-                printf("<FACTOR> -> ( <EXPR> )\n");
+                nTree[N_ARY*n+1] = 'i';
+                break;
+            case 9:
+                nTree[N_ARY*n+1] = '(';
+                nTree[N_ARY*n+2] = 'E';
+                nTree[N_ARY*n+3] = ')';
+                push(N_ARY*n+2, &st);
                 break;
         }
     }
+    printTree(nTree);
+}
+
+/* Função para imprimir a árvore */
+void printTree(int *tree) {
+    int count = 0;
+    for(int i = 0; i < MAX_TREE; i++) {
+
+        if(tree[i] != 0) {
+            printf("|%5d", i);
+        }
+    }
+    printf("|\n");
+    for(int i = 0; i < MAX_TREE; i++) {
+        if(tree[i] != 0) {
+            if(tree[i] == 'i' && count <= lexCount) {
+                printf("|%5s", lexeme[count++]);
+            } else {
+                printf("|%5c", tree[i]);
+            }
+        }
+    }
+    printf("|\n");
+}
+
+/* Funcao principal */
+int main() {
+    if ((in_fp = fopen("input.txt", "r")) == NULL) {
+        printf("ERROR - cannot open input.txt \n");
+    } else {
+        while(!feof(in_fp)) {
+            c = 0;
+            valid = 1;
+            lexCount = 0;
+            fgets(word, MAX_WORD_LENGTH, in_fp);
+            for(int i = 0; word[i] != '\0'; i++) {
+                if (word[i] == '\r' || word[i] == '\n') {
+                    word[i] = '\0';
+                }
+            }
+            printf("Expressao: %s\n", word);
+
+            getChar();
+            initStack(&productions);
+            do {
+                productions.top = -1;
+                lex();
+                expr();
+                printProductions();
+                if(valid) {
+                    printf("Expressao aceita.\n");
+                    printf("Arvore n-aria em vetor:\n");
+                    nAryTree();
+                }
+            } while (nextToken != EOF);
+            printf("\n\n");
+        }
+    }
+
+    fclose(in_fp);
+    return 0;
 }
