@@ -1,0 +1,10 @@
+(defun phi (m n p)
+  (if (= p 0)
+      (+ m n)
+      (if (= n 0)
+          (cond ((= p 1) 0)
+                ((= p 2) 1)
+                (t m))
+          (phi m (phi m (- n 1) p) (- p 1)))))
+
+(print (phi 1 0 2))

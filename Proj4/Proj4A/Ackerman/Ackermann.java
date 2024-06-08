@@ -1,14 +1,21 @@
 public class Ackermann {
 
-    public static int ackermann(int m, int n) {
-        if (m == 0) {
-            return n + 1;
-        } else if (m > 0 && n == 0) {
-            return ackermann(m - 1, 1);
-        } else if (m > 0 && n > 0) {
-            return ackermann(m - 1, ackermann(m, n - 1));
+    public static int phi(int m, int n, int p) {
+        if (p == 0) {
+            return m + n;
+        } else if (n == 0) {
+            if (p == 1) {
+                return 0;
+            }
+            else if (p == 2) {
+                return 1;
+            }
+            else {
+                return m;
+            }
+        } else {
+            return phi(m, phi(m, n - 1, p), p - 1);
         }
-        return 0;
     }
 
     public static void main(String[] args) {
@@ -18,6 +25,6 @@ public class Ackermann {
          * (2,...)
          */
 
-        System.out.println("Ackermann(" + m + ", " + n + ") = " + ackermann(m, n));
+        System.out.println("phi(" + m + ", " + n + ", " + p + ") = " + phi(m, n, p));
     }
 }

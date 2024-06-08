@@ -1,25 +1,32 @@
 #include <stdio.h>
 
-int ackermann(int m, int n) {
-    if (m == 0) {
-        return n + 1;
-    } else if (m > 0 && n == 0) {
-        return ackermann(m - 1, 1);
-    } else if (m > 0 && n > 0) {
-        return ackermann(m - 1, ackermann(m, n - 1));
+int phi(int m, int n, int p) {
+    if (p == 0) {
+        return m + n;
+    } else if (n == 0) {
+        if (p == 1) {
+            return 0;
+        }
+        else if (p == 2) {
+            return 1;
+        }
+        else {
+            return m;
+        }
+    } else {
+        return phi(m, phi(m, n - 1, p), p - 1);
     }
-    return 0;
 }
 
 int main() {
-    int m = 5, n = 0;
+    int m = 7, n = 1, p = 3;
     /*
-    (5,0)
-    (4,1)
-    (3,13)
-    (2,...)
+    (7,1,3) = 823543
+    (2,2,3) = 16
+    (2,3,3) = 65536
+    (2,1,4) = 16
     */
 
-    printf("Ackermann(%d, %d) = %d\n", m, n, ackermann(m, n));
+    printf("phi(%d, %d, %d) = %d\n", m, n, p, phi(m, n, p));
     return 0;
 }
