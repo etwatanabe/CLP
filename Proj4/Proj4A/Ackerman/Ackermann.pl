@@ -18,5 +18,3 @@ phi(M, N, P, Result) :-
     N1 is N - 1,
     phi(M, N1, P, TempResult),
     phi(M1, TempResult, P, Result).
-
-% (4,0) (3,7) (2,...)

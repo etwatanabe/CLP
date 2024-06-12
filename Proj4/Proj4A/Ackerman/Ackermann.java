@@ -20,10 +20,6 @@ public class Ackermann {
 
     public static void main(String[] args) {
         int m = 3, n = 12;
-        /*
-         * (3,12)
-         * (2,...)
-         */
 
         System.out.println("phi(" + m + ", " + n + ", " + p + ") = " + phi(m, n, p));
     }

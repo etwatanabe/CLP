@@ -1,14 +1,14 @@
-insertion_sort([], []).
-insertion_sort([H|T], SortedList) :-
-    insertion_sort(T, SortedT),
-    insert(H, SortedT, SortedList).
+insert_sort(List, Sorted) :-
+    i_sort(List, [], Sorted).
 
-% Insert an element into a sorted list.
+i_sort([], Acc, Acc).
+i_sort([H|T], Acc, Sorted) :-
+    insert(H, Acc, NAcc),
+    i_sort(T, NAcc, Sorted).
+
+insert(X, [Y|T], [Y|NT]) :-
+    X > Y,
+    insert(X, T, NT).
+insert(X, [Y|T], [X,Y|T]) :-
+    X =< Y.
 insert(X, [], [X]).
-insert(X, [H|T], [X,H|T]) :- X =< H.
-insert(X, [H|T], [H|NT]) :- X > H, insert(X, T, NT).
-
-% Test the insertion sort
-test_insertion_sort :-
-    insertion_sort([12, 11, 13, 5, 6], SortedList),
-    write(SortedList), nl.
