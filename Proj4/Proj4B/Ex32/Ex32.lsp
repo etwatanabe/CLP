@@ -20,4 +20,6 @@
   )
 )
 
-(print (e 2 4))
+(print (e 2 14))
+
+; Maior valor atingido, com 6 casas decimais de precisão
