@@ -14,3 +14,5 @@
 )
 
 (print (prodFib 7))
+
+; max = 40
