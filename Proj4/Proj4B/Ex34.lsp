@@ -7,7 +7,9 @@
   (cond
     ((< n 0) nil)
     ((= n 1) 4)
-    (t (if (= (rem n 2) 0) (- (calcularPI (- n 1)) (/ 4 (impar n))) (+ (calcularPI (- n 1)) (/ 4 (impar n)))))
+    (t (if (= (rem n 2) 0)
+      (- (calcularPI (- n 1)) (/ 4 (impar n)))
+      (+ (calcularPI (- n 1)) (/ 4 (impar n)))))
   )
 )
 
